@@ -1,0 +1,79 @@
+import random
+import time
+
+# 1. Сгенерируйте с использованием функции range (случайный шаг от 3 до 5) массив, содержащий отсортированные числа от 10 до 250 млн
+start = 10
+end = 250_000_000
+step = random.randint(3, 5)
+sorted_array = list(range(start, end, step))
+
+# 2. Сгенерируйте с помощью list comprehensions и функции randomint (встроенный модуль random) 10 случайных чисел
+random_numbers = [random.randint(start, end) for _ in range(10)]
+
+# 3. Напишите функцию для алгоритма линейного поиска
+def linear_search(arr, target):
+    for i, num in enumerate(arr):
+        if num == target:
+            return i
+    return -1
+
+# 4. Напишите функцию для алгоритма бинарного поиска
+def binary_search(arr, target):
+    left, right = 0, len(arr) - 1
+    while left <= right:
+        mid = (left + right) // 2
+        if arr[mid] == target:
+            return mid
+        elif arr[mid] < target:
+            left = mid + 1
+        else:
+            right = mid - 1
+    return -1
+
+# 5. Проверьте наличие ранее сгенерированных случайных чисел в массиве с помощью алгоритмов линейного и бинарного поиска, замерьте время
+linear_search_times = []
+binary_search_times = []
+
+for num in random_numbers:
+    # Линейный поиск
+    start_time = time.time()
+    linear_search(sorted_array, num)
+    linear_search_times.append(time.time() - start_time)
+    
+    # Бинарный поиск
+    start_time = time.time()
+    binary_search(sorted_array, num)
+    binary_search_times.append(time.time() - start_time)
+
+linear_search_times, binary_search_times, sorted_array[:10], random_numbers
+
+# Время: 5 секунд
+
+# Очень большой массив. Уменьшим верхнюю границу диапазона: 250 000 вместо 250 000 000
+
+end_revised = 250_000
+step = random.randint(3, 5)
+sorted_array = list(range(start, end_revised, step))
+
+# Пересоздадим случайные числа в новом диапазоне
+random_numbers = [random.randint(start, end_revised) for _ in range(10)]
+
+# Замерим время выполнения поисков
+linear_search_times = []
+binary_search_times = []
+
+for num in random_numbers:
+    # Линейный поиск
+    start_time = time.time()
+    linear_search(sorted_array, num)
+    linear_search_times.append(time.time() - start_time)
+    
+    # Бинарный поиск
+    start_time = time.time()
+    binary_search(sorted_array, num)
+    binary_search_times.append(time.time() - start_time)
+
+sorted_array_sample = sorted_array[:10]  # Возьмем первые 10 элементов для примера
+linear_search_times, binary_search_times, sorted_array_sample, random_numbers
+
+# Время: 3 секунды
