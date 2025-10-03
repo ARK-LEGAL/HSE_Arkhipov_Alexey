@@ -7,20 +7,19 @@ import tempfile
 
 class ParserCBRF:
     def __init__(self, url: str, output_dir: str = None):
-        """
-        Инициализация парсера.
-        :param url: Ссылка на страницу или файл для парсинга.
-        :param output_dir: Директория для сохранения файлов. Если не указана, используется временная директория.
-        """
+        # Инициализация парсера.
+        #:param url: Ссылка на страницу или файл для парсинга.
+        #:param output_dir: Директория для сохранения файлов. Если не указана, используется временная директория.
+        
         self.url = url
         self.output_dir = output_dir if output_dir else tempfile.gettempdir()
         self.data = {}
 
     def start(self) -> dict:
-        """
-        Публичный метод для запуска парсинга.
-        :return: Словарь с данными.
-        """
+        
+        №Публичный метод для запуска парсинга.
+        №:return: Словарь с данными.
+        
         if self.url.endswith(('.xlsx', '.xls', '.csv', '.pdf')):
             self.__download_file()
             self.__parse_file()
@@ -29,7 +28,8 @@ class ParserCBRF:
         return self.data
 
     def __download_file(self) -> None:
-        """Приватный метод для загрузки файла."""
+        
+        #Приватный метод для загрузки файла.
         try:
             response = requests.get(self.url, stream=True)
             response.raise_for_status()
@@ -42,7 +42,8 @@ class ParserCBRF:
             print(f"Ошибка при загрузке файла: {e}")
 
     def __parse_file(self) -> None:
-        """Приватный метод для парсинга файла."""
+        
+        #Приватный метод для парсинга файла.
         file_name = os.path.join(self.output_dir, os.path.basename(self.url))
         try:
             if self.url.endswith('.xlsx') or self.url.endswith('.xls'):
@@ -63,7 +64,7 @@ class ParserCBRF:
             print(f"Ошибка при парсинге файла: {e}")
 
     def __parse_web_page(self) -> None:
-        """Приватный метод для парсинга веб-страницы."""
+        #Приватный метод для парсинга веб-страницы.
         try:
             response = requests.get(self.url)
             response.raise_for_status()
