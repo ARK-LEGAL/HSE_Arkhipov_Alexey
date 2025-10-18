@@ -1,1 +1,129 @@
+#!/usr/bin/env python3
+from typing import Dict
+from telegram import KeyboardButton, ReplyKeyboardMarkup, Update
+from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, CommandHandler, filters
+
+BOT_TOKEN = "8400238128:AAEDqjWSc3TYxz40yfUB6SRO5Zh9vPfXcPw"
+
+WATCHES: Dict[str, Dict[str, str]] = {
+    "Rolex": {
+        "Основана": "1905",
+        "Страна": "Швейцария (Женева)",
+        "О компании": "Rolex — синоним роскоши и престижа. Известна корпусом Oyster и автоматическим заводом Perpetual.",
+        "Известные модели": "Submariner, Daytona, Datejust"
+    },
+    "Omega": {
+        "Основана": "1848",
+        "Страна": "Швейцария (Биль/Бьенн)",
+        "О компании": "Omega славится точностью и участием в космических миссиях — хронометраж Олимпийских игр и часы для полёта на Луну.",
+        "Известные модели": "Speedmaster, Seamaster, Constellation"
+    },
+    "Patek Philippe": {
+        "Основана": "1839",
+        "Страна": "Швейцария (Женева)",
+        "О компании": "Patek Philippe — высшая школа часового искусства, сложные механизмы и рекорды на аукционах.",
+        "Известные модели": "Nautilus, Calatrava, Grand Complications"
+    },
+    "TAG Heuer": {
+        "Основана": "1860",
+        "Страна": "Швейцария (Ла-Шо-де-Фон)",
+        "О компании": "TAG Heuer сочетает спортивный хронометраж с наследием автоспорта и современный дизайн.",
+        "Известные модели": "Carrera, Monaco, Aquaracer"
+    },
+    "Seiko": {
+        "Основана": "1881",
+        "Страна": "Япония (Токио)",
+        "О компании": "Seiko охватывает широкий диапазон от доступных надёжных часов до премиальных Grand Seiko и Spring Drive.",
+        "Известные модели": "Prospex, Presage, Grand Seiko"
+    }
+}
+
+MAIN_BUTTONS = [
+    [KeyboardButton("Компании"), KeyboardButton("Вся информация")],
+    [KeyboardButton("Как пользоваться"), KeyboardButton("Выход")]
+]
+COMPANIES_BUTTONS = [[KeyboardButton(name) for name in WATCHES.keys()], [KeyboardButton("Назад")]]
+COMPANY_ACTION_BUTTONS = [[KeyboardButton("Назад"), KeyboardButton("Вся информация")]]
+
+MAIN_MARKUP = ReplyKeyboardMarkup(MAIN_BUTTONS, resize_keyboard=True)
+COMPANIES_MARKUP = ReplyKeyboardMarkup(COMPANIES_BUTTONS, resize_keyboard=True, one_time_keyboard=True)
+COMPANY_MARKUP = ReplyKeyboardMarkup(COMPANY_ACTION_BUTTONS, resize_keyboard=True)
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "Добро пожаловать в WatchBot — компактный справочник по часовым маркам.\n"
+        "Используйте меню ниже, чтобы выбрать раздел.",
+        reply_markup=MAIN_MARKUP
+    )
+
+
+async def list_companies(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("Выберите марку часов, чтобы увидеть информацию:", reply_markup=COMPANIES_MARKUP)
+
+
+async def all_companies_info(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    parts = []
+    for name, info in WATCHES.items():
+        parts.append(f"{name}\n  Основана: {info['Основана']}\n  Страна: {info['Страна']}\n  {info['О компании']}\n  Модели: {info['Известные модели']}")
+    await update.message.reply_text("\n\n".join(parts), reply_markup=MAIN_MARKUP)
+
+
+async def how_to_use(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text(
+        "Меню:\n- Компании — выбрать одну марку и получить детали\n"
+        "- Вся информация — отправить полную справку по всем маркам\n"
+        "- Назад или Выход — вернуться или завершить\nПросто нажмите кнопку в меню.",
+        reply_markup=MAIN_MARKUP
+    )
+
+
+async def show_company(update: Update, context: ContextTypes.DEFAULT_TYPE, name: str) -> None:
+    info = WATCHES[name]
+    text = (
+        f"{name}\nОснована: {info['Основана']}\nСтрана: {info['Страна']}\n\n{info['О компании']}\n\nИзвестные модели: {info['Известные модели']}"
+    )
+    await update.message.reply_text(text, reply_markup=COMPANY_MARKUP)
+
+
+async def exit_menu(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("До свидания — откройте меню командой /start, когда захотите.", reply_markup=ReplyKeyboardMarkup([[KeyboardButton("Start")]], resize_keyboard=True))
+
+
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = (update.message.text or "").strip()
+    if text in {"Start", "/start"}:
+        await start(update, context)
+        return
+    if text == "Компании":
+        await list_companies(update, context)
+        return
+    if text == "Вся информация":
+        await all_companies_info(update, context)
+        return
+    if text == "Как пользоваться":
+        await how_to_use(update, context)
+        return
+    if text == "Назад":
+        await update.message.reply_text("Возвращаю в главное меню.", reply_markup=MAIN_MARKUP)
+        return
+    if text == "Выход":
+        await exit_menu(update, context)
+        return
+    if text in WATCHES:
+        await show_company(update, context, text)
+        return
+    await update.message.reply_text("Не понимаю сообщение. Используйте меню ниже.", reply_markup=MAIN_MARKUP)
+
+
+def main() -> None:
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, unknown))
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
+
 
