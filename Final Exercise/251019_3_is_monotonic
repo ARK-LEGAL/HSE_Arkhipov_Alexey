@@ -1,0 +1,6 @@
+def is_monotonic(nums):
+    if len(nums) < 2:
+        return True
+    non_decreasing = all(nums[i] <= nums[i + 1] for i in range(len(nums) - 1))
+    non_increasing = all(nums[i] >= nums[i + 1] for i in range(len(nums) - 1))
+    return non_decreasing or non_increasing
